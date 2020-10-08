@@ -8,7 +8,7 @@ import Row from "react-bootstrap/Row";
 
 
 const TodoList = () => {
-  const [pendingLists, setPendingTodos] = useState([]);
+  const [pendingTodos, setPendingTodos] = useState([]);
   const [completedTodos, setCompletedTodos] = useState([]);
 
   const addTodo = (description) => {
