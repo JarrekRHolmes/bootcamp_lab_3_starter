@@ -1,33 +1,44 @@
-import React, { useState } from "react";
-import Card from "react-bootstrap/Card";
-import CompletedTodoItem from "./CompletedTodoItem";
-import Container from "react-bootstrap/Container";
-import ListGroup from "react-bootstrap/ListGroup";
-import PendingTodoItem from "./PendingTodoItem";
 import Row from "react-bootstrap/Row";
+import React from "react";
+import Immutable from "immutable";
 
+import Card from "react-bootstrap/Card";
+import ListGroup from "react-bootstrap/ListGroup";
+import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
 
-const TodoList = () => {
-  const [pendingTodos, setPendingTodos] = useState([]);
-  const [completedTodos, setCompletedTodos] = useState([]);
+class TodoList extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      todos: [],
+    };
+  }
 
-  const addTodo = (description) => {
-    setPendingTodos([description, ...pendingTodos]);
-  };
+  addOne(description) {
+    const todo = Immutable.Map({ description: description, complete: false });
+    this.setState({
+      todos: [todo, ...this.state.todos],
+    });
+  }
 
-  const completeTodoItem = (index) => {
-    const completedItem = pendingTodos.splice(index, 1);
-    setCompletedTodos([...completedItem, ...completedTodos]);
-    setPendingTodos([...pendingTodos]);
-  };
+  finishIt(index) {
+    const todo = this.state.todos[index];
+    const allTodos = this.state.todos;
+    const newTodo = Immutable.Map({ description: todo.get("description"), complete: true });
+    allTodos[index] = newTodo;
+    this.setState({
+      todos: [...allTodos],
+    });
+  }
 
-  const renderTodoForm = () => {
+  renderTodoForm() {
     let input;
     return (
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          addTodo(input.value);
+          this.addOne(input.value);
           input.value = "";
         }}
       >
@@ -39,59 +50,58 @@ const TodoList = () => {
         />
       </form>
     );
-  };
+  }
 
-  const renderPendingTodos = () => {
-    const pendingTodoList = pendingTodos.map((todo, index) => {
-      return (
-        <PendingTodoItem
-          description={todo}
-          completeTodoItem={completeTodoItem}
-          index={index}
-          key={index}
-        />
-      );
+  render() {
+    let pend = [];
+    let compl = [];
+
+    this.state.todos.map((todo, index) => {
+      const isDone = todo.get("complete", false);
+      debugger;
+      if (!isDone) {
+        pend.push(
+          <ListGroup.Item
+            onClick={() => this.finishIt(index)}
+            className="pending-item"
+          >
+            {todo.get("description")}
+          </ListGroup.Item>
+        );
+      } else {
+        compl.push(
+          <ListGroup.Item>
+            <s>{todo.get("description")}</s>
+          </ListGroup.Item>
+        );
+      }
     });
 
     return (
-      <>
-        {pendingTodoList.length > 0 && (
-          <Card style={{ width: "18rem" }} border="primary">
-            <Card.Header>Pending Todos</Card.Header>
-            <ListGroup>{pendingTodoList}</ListGroup>
-          </Card>
-        )}
-      </>
+      <Container>
+        <Row className="justify-content-center mt-2">
+          <h2>Todo List</h2>
+        </Row>
+        <Row className="justify-content-center">{this.renderTodoForm()}</Row>
+        <Row className="justify-content-center mt-3">
+          {pend.length > 0 && (
+            <Card style={{ width: "18rem" }} border="primary">
+              <Card.Header>Pending Todos</Card.Header>
+              <ListGroup>{pend}</ListGroup>
+            </Card>
+          )}
+        </Row>
+        <Row className="justify-content-center mt-2">
+          {compl.length > 0 && (
+            <Card style={{ width: "18rem" }} border="danger">
+              <Card.Header>Completed</Card.Header>
+              <ListGroup>{compl}</ListGroup>
+            </Card>
+          )}
+        </Row>
+      </Container>
     );
-  };
-
-  const renderCompletedTodos = () => {
-    const completedTodoList = completedTodos.map((todo, index) => {
-      return <CompletedTodoItem description={todo} key={index} />;
-    });
-
-    return (
-      <>
-        {completedTodoList.length > 0 && (
-          <Card style={{ width: "18rem" }} border="danger">
-            <Card.Header>Completed</Card.Header>
-            <ListGroup>{completedTodoList}</ListGroup>
-          </Card>
-        )}
-      </>
-    );
-  };
-
-  return (
-    <Container>
-      <Row className="justify-content-center mt-2">
-        <h2>Todo List</h2>
-      </Row>
-      <Row className="justify-content-center">{renderTodoForm()}</Row>
-      <Row className="justify-content-center mt-3">{renderPendingTodos()}</Row>
-      <Row className="justify-content-center mt-2">{renderCompletedTodos()}</Row>
-    </Container>
-  );
-};
+  }
+}
 
 export default TodoList;
